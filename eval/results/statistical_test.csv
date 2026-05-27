@@ -1,0 +1,5 @@
+﻿metric,wilcoxon_statistic,p_value,significant_at_0.05,winner
+faithfulness,0.0,1.0,False,n.s.
+answer_relevancy,0.0,1.0,False,n.s.
+context_precision,0.0,1.0,False,n.s.
+context_recall,0.0,1.0,False,n.s.

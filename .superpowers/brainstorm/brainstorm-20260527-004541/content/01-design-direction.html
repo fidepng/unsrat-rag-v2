@@ -1,0 +1,145 @@
+<h2>Arah Desain UI — Chatbot Akademik UNSRAT</h2>
+<p class="subtitle">Pilih gaya visual yang paling sesuai untuk konteks chatbot akademik universitas. Klik opsi yang paling menarik.</p>
+
+<div class="options">
+  <!-- Option A: Academic Formal -->
+  <div class="option" data-choice="academic-formal" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>🎓 Academic Formal</h3>
+      <div class="mockup" style="margin: 12px 0;">
+        <div class="mockup-body" style="padding: 0; overflow: hidden;">
+          <!-- Mini mockup -->
+          <div style="background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%); padding: 16px; color: white;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+              <div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.2); display: flex; align-items: center; justify-content: center; font-size: 18px;">🎓</div>
+              <div>
+                <div style="font-weight: 700; font-size: 14px;">Asisten Akademik UNSRAT</div>
+                <div style="font-size: 10px; opacity: 0.8;">Peraturan Akademik • Kalender • Info Kampus</div>
+              </div>
+            </div>
+          </div>
+          <div style="background: #f5f5f5; padding: 12px; min-height: 120px;">
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+              <div style="width: 28px; height: 28px; border-radius: 50%; background: #1a237e; flex-shrink: 0;"></div>
+              <div style="background: white; border-radius: 0 12px 12px 12px; padding: 10px 12px; font-size: 11px; box-shadow: 0 1px 2px rgba(0,0,0,0.08); max-width: 80%; border-left: 3px solid #1a237e;">
+                Selamat datang! Saya siap membantu Anda dengan informasi akademik UNSRAT.
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+              <div style="background: #1a237e; color: white; border-radius: 12px 0 12px 12px; padding: 10px 12px; font-size: 11px; max-width: 70%;">
+                Apa syarat yudisium S1?
+              </div>
+            </div>
+          </div>
+          <div style="background: white; padding: 8px 12px; border-top: 1px solid #e0e0e0; display: flex; gap: 8px;">
+            <div style="flex: 1; background: #f5f5f5; border-radius: 20px; padding: 6px 12px; font-size: 10px; color: #999;">Ketik pertanyaan Anda...</div>
+            <div style="width: 28px; height: 28px; background: #1a237e; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">→</div>
+          </div>
+        </div>
+      </div>
+      <p>Warna <strong>biru navy institusional</strong>, tipografi serif/formal, layout bersih tanpa gangguan. Sidebar kiri untuk navigasi config. Kesan: profesional, terpercaya, resmi.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Cocok konteks universitas</li><li>Kesan resmi & terpercaya</li><li>Profesional untuk sidang</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Bisa terasa kaku/membosankan</li><li>Kurang modern</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option B: Modern Glassmorphism -->
+  <div class="option" data-choice="modern-glass" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>✨ Modern Glassmorphism</h3>
+      <div class="mockup" style="margin: 12px 0;">
+        <div class="mockup-body" style="padding: 0; overflow: hidden;">
+          <!-- Mini mockup -->
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 16px; position: relative; overflow: hidden;">
+            <!-- Glass circles -->
+            <div style="position: absolute; width: 100px; height: 100px; border-radius: 50%; background: rgba(255,255,255,0.08); top: -20px; right: -20px;"></div>
+            <div style="position: absolute; width: 60px; height: 60px; border-radius: 50%; background: rgba(255,255,255,0.05); bottom: -10px; left: 20px;"></div>
+            <div style="color: white; position: relative; z-index: 1;">
+              <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+                <div style="width: 36px; height: 36px; border-radius: 12px; background: rgba(255,255,255,0.2); backdrop-filter: blur(8px); display: flex; align-items: center; justify-content: center; font-size: 18px;">🎓</div>
+                <div>
+                  <div style="font-weight: 700; font-size: 14px;">UNSRAT AI Assistant</div>
+                  <div style="font-size: 10px; opacity: 0.8;">Powered by RAG + Gemini</div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div style="background: linear-gradient(180deg, #f0f0f8 0%, #e8e6f0 100%); padding: 12px; min-height: 120px;">
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+              <div style="width: 28px; height: 28px; border-radius: 10px; background: linear-gradient(135deg, #667eea, #764ba2); flex-shrink: 0;"></div>
+              <div style="background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); border-radius: 4px 16px 16px 16px; padding: 10px 12px; font-size: 11px; box-shadow: 0 2px 8px rgba(102,126,234,0.1); max-width: 80%; border: 1px solid rgba(255,255,255,0.5);">
+                Halo! ✨ Ada yang bisa saya bantu tentang informasi akademik UNSRAT?
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+              <div style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 16px 4px 16px 16px; padding: 10px 12px; font-size: 11px; max-width: 70%;">
+                Kapan UTS semester genap?
+              </div>
+            </div>
+          </div>
+          <div style="background: rgba(255,255,255,0.6); padding: 8px 12px; border-top: 1px solid rgba(102,126,234,0.1); display: flex; gap: 8px;">
+            <div style="flex: 1; background: rgba(255,255,255,0.8); border-radius: 14px; padding: 6px 12px; font-size: 10px; color: #999; border: 1px solid rgba(102,126,234,0.15);">Tanyakan sesuatu...</div>
+            <div style="width: 28px; height: 28px; background: linear-gradient(135deg, #667eea, #764ba2); border-radius: 10px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">↑</div>
+          </div>
+        </div>
+      </div>
+      <p>Gradient <strong>ungu-biru</strong>, efek glass blur, sudut membulat, floating elements. Kesan: modern, fresh, Gen-Z friendly.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Visual impact tinggi (wow factor)</li><li>Kesan canggih & inovatif</li><li>Menarik untuk presentasi</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Bisa terasa "terlalu gaya"</li><li>Backdrop-filter berat di PC lama</li></ul></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Option C: Clean Dark Mode -->
+  <div class="option" data-choice="dark-minimal" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>🌙 Dark Mode Minimal</h3>
+      <div class="mockup" style="margin: 12px 0;">
+        <div class="mockup-body" style="padding: 0; overflow: hidden;">
+          <!-- Mini mockup -->
+          <div style="background: #1a1a2e; padding: 16px; color: #e0e0e0;">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 8px;">
+              <div style="width: 36px; height: 36px; border-radius: 10px; background: linear-gradient(135deg, #e94560, #0f3460); display: flex; align-items: center; justify-content: center; font-size: 18px;">🎓</div>
+              <div>
+                <div style="font-weight: 700; font-size: 14px; color: #fff;">UNSRAT RAG</div>
+                <div style="font-size: 10px; color: #888;">Sistem Informasi Akademik Cerdas</div>
+              </div>
+            </div>
+          </div>
+          <div style="background: #16213e; padding: 12px; min-height: 120px;">
+            <div style="display: flex; gap: 8px; margin-bottom: 10px;">
+              <div style="width: 28px; height: 28px; border-radius: 8px; background: #0f3460; flex-shrink: 0; display: flex; align-items: center; justify-content: center; font-size: 12px;">🤖</div>
+              <div style="background: #1a1a2e; border-radius: 4px 12px 12px 12px; padding: 10px 12px; font-size: 11px; color: #ccc; max-width: 80%; border: 1px solid #2a2a4e;">
+                Selamat datang di asisten akademik UNSRAT. Silakan ajukan pertanyaan Anda.
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+              <div style="background: #e94560; color: white; border-radius: 12px 4px 12px 12px; padding: 10px 12px; font-size: 11px; max-width: 70%;">
+                Bagaimana cara mengajukan cuti akademik?
+              </div>
+            </div>
+          </div>
+          <div style="background: #1a1a2e; padding: 8px 12px; border-top: 1px solid #2a2a4e; display: flex; gap: 8px;">
+            <div style="flex: 1; background: #16213e; border-radius: 10px; padding: 6px 12px; font-size: 10px; color: #666; border: 1px solid #2a2a4e;">Tulis pertanyaan...</div>
+            <div style="width: 28px; height: 28px; background: #e94560; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: white; font-size: 12px;">→</div>
+          </div>
+        </div>
+      </div>
+      <p>Palet <strong>dark navy + aksen merah</strong>, tipografi sans-serif clean, spacing lapang. Terinspirasi dari ChatGPT/Claude UI. Kesan: teknis, fokus, developer-like.</p>
+      <div class="pros-cons">
+        <div class="pros"><h4>Pros</h4><ul><li>Nyaman di mata (sesi lama)</li><li>Familiar bagi pengguna AI chatbot</li><li>Fokus pada konten</li></ul></div>
+        <div class="cons"><h4>Cons</h4><ul><li>Kurang "akademik"</li><li>Bisa terasa terlalu developer-oriented</li></ul></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top: 20px; padding: 16px; background: rgba(255,255,255,0.05); border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+  <p style="font-size: 13px; opacity: 0.7; margin: 0;">💡 <strong>Catatan:</strong> Ini adalah arah visual — bukan desain final. Setelah pilih arah, kita akan drill down ke layout detail, warna, komponen sidebar, dan tampilan sitasi sumber.</p>
+</div>

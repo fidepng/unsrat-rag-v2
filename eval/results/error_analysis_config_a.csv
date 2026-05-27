@@ -1,0 +1,6 @@
+﻿rank,user_input,reference,response,avg_metric_score,failure_type,failure_notes
+1,Apa visi Universitas Sam Ratulangi?,"Visi UNSRAT adalah menjadi universitas yang unggul, berbudaya, dan berdaya saing global menuju universitas riset yang berlandaskan Pancasila.","Halo! Berdasarkan dokumen yang tersedia, visi Universitas Sam Ratulangi (UNSRAT) adalah menjadi **Excellent University**. 
+
+Namun, rumusan lengkap atau detail dari visi tersebut tidak dijelaskan lebih lanjut dalam dokumen yang disediakan. Jika Anda membutuhkan informasi yang lebih rinci mengenai visi ini, kami sarankan untuk menghubungi bagian administrasi kampus UNSRAT terkait. Terima kasih!",0.0,,
+2,Berapakah jumlah maksimal SKS yang dapat diambil mahasiswa per semester?,Jumlah SKS maksimal yang dapat diambil oleh mahasiswa didasarkan pada Indeks Prestasi Semester (IPS) sebelumnya. IPS >= 3.00 dapat mengambil maksimal 24 SKS. IPS 2.00 - 2.99 maksimal 20 SKS. IPS < 2.00 maksimal 15 SKS. Sedangkan mahasiswa baru di semester pertama dibatasi maksimal 20 SKS.,". Berdasarkan Indeks Prestasi Semester (IPS):**
+    *   **IPS >= 3.00:** Maksimal **2",0.8384599476204951,,

@@ -78,7 +78,7 @@ def _run_evaluation(df: pd.DataFrame, config: str) -> pd.DataFrame:
     Setiap pertanyaan dievaluasi INDEPENDEN (chat_history di-reset per pertanyaan).
     """
     from ragas import evaluate, EvaluationDataset
-    from ragas.metrics import (
+    from ragas.metrics.collections import (
         faithfulness,
         answer_relevancy,
         context_precision,

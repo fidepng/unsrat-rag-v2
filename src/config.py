@@ -34,15 +34,20 @@ CHROMA_DISTANCE_FN  = "cosine"
 # ── MODEL ───────────────────────────────────────────────────────────────────
 # Generator dan evaluator HARUS BERBEDA (mitigasi self-eval bias — D-16).
 # Ganti dengan nama model yang tersedia di akun GCP Anda.
-LLM_MODEL_NAME       = "gemini-3.5-flash"
+LLM_MODEL_NAME       = "qwen/qwen3.5-397b-a17b"
 EMBEDDING_MODEL_NAME = "gemini-embedding-001"
-EVALUATOR_MODEL_NAME = "gemini-2.5-flash"
+EVALUATOR_MODEL_NAME = "meta/llama-3.1-70b-instruct"
 
 # Daftar model yang bisa dipilih di UI sidebar.
 AVAILABLE_MODELS: list[str] = [
+    "qwen/qwen3.5-397b-a17b",
+    "gemini-3.5-flash",
     "gemini-3.1-pro-preview",
     "gemini-3-flash-preview",
+    "gemini-3.1-flash-lite",
+    "gemini-2.5-pro",
     "gemini-2.5-flash",
+    "gemini-2.5-flash-lite",
 ]
 
 # ── CHUNKING — CONFIG A (Eksperimen, chunk kecil) ───────────────────────────
@@ -68,7 +73,7 @@ BM25_MIN_TOKEN_LEN = 2   # Panjang minimum token (filter kasar stopword)
 
 # ── LLM GENERATION ──────────────────────────────────────────────────────────
 LLM_TEMPERATURE       = 0.1   # Rendah untuk konsistensi dan reprodusibilitas
-LLM_MAX_OUTPUT_TOKENS = 800
+LLM_MAX_OUTPUT_TOKENS = 2048
 LLM_TOP_P             = 0.95
 
 # ── MEMORI PERCAKAPAN ───────────────────────────────────────────────────────

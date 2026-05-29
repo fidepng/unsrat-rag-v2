@@ -1,5 +1,5 @@
 ﻿metric,wilcoxon_statistic,p_value,significant_at_0.05,winner
-faithfulness,0.0,1.0,False,n.s.
-answer_relevancy,0.0,1.0,False,n.s.
-context_precision,0.0,1.0,False,n.s.
-context_recall,0.0,1.0,False,n.s.
+faithfulness,14.0,0.09116079400519664,False,n.s.
+answer_relevancy,31.0,0.31089682851661204,False,n.s.
+context_precision,7.0,0.0658399776970815,False,n.s.
+context_recall,1.0,0.14077277337135014,False,n.s.

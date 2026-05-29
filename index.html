@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎓 Asisten Akademik UNSRAT - RAG System</title>
+    <meta name="description" content="Sistem Chatbot Informasi Akademik Universitas Sam Ratulangi berbasis RAG (Retrieval-Augmented Generation) dengan Evaluasi Ragas.">
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Marked.js (Markdown Parser) -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        /* Markdown rendering styles */
+        .parsed-markdown p {
+            margin-bottom: 0.75rem;
+        }
+        .parsed-markdown p:last-child {
+            margin-bottom: 0px;
+        }
+        .parsed-markdown strong {
+            font-weight: 700;
+            color: #2D1A1A;
+        }
+        .parsed-markdown ul {
+            list-style-type: disc;
+            margin-left: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        .parsed-markdown ol {
+            list-style-type: decimal;
+            margin-left: 1.25rem;
+            margin-bottom: 0.75rem;
+        }
+        .parsed-markdown li {
+            margin-bottom: 0.25rem;
+        }
+        .parsed-markdown code {
+            font-family: monospace;
+            background-color: #F5F4F0;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-size: 0.85em;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FAFAF8;
+        }
+        /* Custom scrollbar to keep layout clean and premium */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #E4DFD9;
+            border-radius: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #D1C9BE;
+        }
+        /* Micro-animations */
+        .tab-btn-active {
+            background-color: rgba(255, 255, 255, 0.15);
+            color: #FFFFFF;
+            border-left: 4px solid #FFFFFF;
+        }
+        .tab-btn-inactive {
+            color: rgba(255, 255, 255, 0.7);
+            border-left: 4px solid transparent;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.2s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="h-screen flex overflow-hidden">
+
+    <!-- Sidebar Panel Kontrol -->
+    <aside class="w-80 bg-gradient-to-b from-[#4A1515] via-[#5B1A1A] to-[#7B2D2D] text-white flex flex-col justify-between p-6 shadow-2xl z-20 transition-all duration-300">
+        <div class="space-y-6">
+            <!-- Header Branding -->
+            <div class="flex items-center space-x-3 pb-4 border-b border-white/10">
+                <div class="bg-white/10 p-2.5 rounded-xl shadow-inner">
+                    <i data-lucide="graduation-cap" class="w-7 h-7 text-white animate-pulse"></i>
+                </div>
+                <div>
+                    <h2 class="font-bold text-lg leading-tight tracking-wide">UNSRAT</h2>
+                    <p class="text-white/60 text-[10px] uppercase font-bold tracking-wider">Asisten Informasi RAG</p>
+                </div>
+            </div>
+
+            <!-- Tab Navigation Buttons -->
+            <nav class="space-y-1" id="navigation-tabs">
+                <button id="tab-chat-btn" class="w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-medium transition duration-200 tab-btn-active">
+                    <i data-lucide="message-square-more" class="w-5 h-5"></i>
+                    <span>💬 Chatbot Utama</span>
+                </button>
+                <button id="tab-eval-btn" class="w-full flex items-center space-x-3 px-4 py-3.5 rounded-xl font-medium transition duration-200 tab-btn-inactive hover:bg-white/5 hover:text-white">
+                    <i data-lucide="bar-chart-3" class="w-5 h-5"></i>
+                    <span>📊 Evaluasi Ragas</span>
+                </button>
+            </nav>
+
+            <!-- Parameter Config Panel -->
+            <div class="space-y-5 pt-5 border-t border-white/10">
+                <h3 class="text-[10px] font-bold text-white/40 tracking-widest uppercase flex items-center space-x-1">
+                    <i data-lucide="sliders" class="w-3 h-3"></i>
+                    <span>Parameter Sistem</span>
+                </h3>
+                
+                <!-- Config Switcher -->
+                <div class="space-y-2">
+                    <label class="text-xs font-semibold text-white/70 flex items-center space-x-1">
+                        <i data-lucide="database" class="w-3.5 h-3.5 text-white/50"></i>
+                        <span>Konfigurasi Retrieval</span>
+                    </label>
+                    <div class="space-y-1.5 bg-black/20 p-2 rounded-xl text-sm border border-white/5">
+                        <label class="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/5 transition duration-150 cursor-pointer">
+                            <input type="radio" name="config" value="a" class="accent-[#7B2D2D] w-4 h-4 cursor-pointer" id="radio-config-a">
+                            <div class="flex flex-col">
+                                <span class="font-medium text-white/95 text-xs">Config A</span>
+                                <span class="text-[10px] text-white/50">Chunk size 500 (Eksperimen)</span>
+                            </div>
+                        </label>
+                        <label class="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/5 transition duration-150 cursor-pointer">
+                            <input type="radio" name="config" value="b" checked class="accent-[#7B2D2D] w-4 h-4 cursor-pointer" id="radio-config-b">
+                            <div class="flex flex-col">
+                                <span class="font-medium text-white/95 text-xs">Config B</span>
+                                <span class="text-[10px] text-white/50">Chunk size 2000 (Best Practice)</span>
+                            </div>
+                        </label>
+                        <label class="flex items-center space-x-3 p-2 rounded-lg hover:bg-white/5 transition duration-150 cursor-pointer">
+                            <input type="radio" name="config" value="c" class="accent-[#7B2D2D] w-4 h-4 cursor-pointer" id="radio-config-c">
+                            <div class="flex flex-col">
+                                <span class="font-medium text-white/95 text-xs">Config C</span>
+                                <span class="text-[10px] text-white/50">BM25 (Keyword Baseline)</span>
+                            </div>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Model Selector -->
+                <div class="space-y-2">
+                    <label class="text-xs font-semibold text-white/70 flex items-center space-x-1" for="model-select">
+                        <i data-lucide="cpu" class="w-3.5 h-3.5 text-white/50"></i>
+                        <span>Model Generator LLM</span>
+                    </label>
+                    <div class="relative">
+                        <select id="model-select" class="w-full bg-black/20 border border-white/10 rounded-xl px-3 py-3 text-xs text-white focus:outline-none focus:border-white/30 cursor-pointer appearance-none">
+                            <!-- Opsi dimuat dinamis dari API -->
+                        </select>
+                        <div class="absolute inset-y-0 right-3 flex items-center pointer-events-none text-white/50">
+                            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tombol Reset di Bagian Bawah -->
+        <button id="reset-btn" class="w-full flex items-center justify-center space-x-2 py-3.5 bg-white/10 hover:bg-white/20 active:bg-white/30 rounded-xl text-xs text-white font-semibold transition duration-200 border border-white/10 shadow-lg hover:shadow-xl active:scale-[0.98]">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i>
+            <span>🔄 Bersihkan Riwayat</span>
+        </button>
+    </aside>
+
+    <!-- Konten Utama -->
+    <main class="flex-1 flex flex-col h-full overflow-hidden relative">
+        
+        <!-- TAB 1: AREA CHATBOT UTAMA -->
+        <div id="tab-chat" class="flex-1 flex flex-col h-full overflow-hidden transition-all duration-300 animate-fade-in">
+            <!-- Header Akademik Melintang -->
+            <header class="bg-gradient-to-r from-[#5C1F1F] to-[#7B2D2D] text-white px-8 py-5 shadow-lg flex items-center justify-between z-10">
+                <div class="flex items-center space-x-4">
+                    <div class="w-12 h-12 bg-white/10 rounded-xl flex items-center justify-center border border-white/15">
+                        <i data-lucide="bot" class="w-6 h-6 text-white"></i>
+                    </div>
+                    <div>
+                        <h1 class="font-bold text-lg tracking-tight flex items-center space-x-2">
+                            <span>🎓 Asisten Akademik UNSRAT</span>
+                        </h1>
+                        <p class="text-white/60 text-xs font-medium">Sistem Penjawab Pertanyaan Regulasi & Profil Kampus berbasis RAG</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <span id="badge-config-display" class="bg-white/15 border border-white/10 px-4 py-1.5 rounded-full text-[10px] font-bold uppercase tracking-wider text-white shadow-sm">Config B</span>
+                </div>
+            </header>
+
+            <!-- Area Riwayat Chat -->
+            <div id="chat-messages" class="flex-1 overflow-y-auto px-8 py-6 space-y-6 custom-scrollbar pb-36">
+                <!-- Welcome Message Bubble -->
+                <div class="flex items-start space-x-4 max-w-4xl animate-fade-in">
+                    <div class="bg-[#7B2D2D] text-white p-3 rounded-xl flex-shrink-0 mt-1 shadow-md flex items-center justify-center">
+                        <i data-lucide="sparkles" class="w-5 h-5"></i>
+                    </div>
+                    <div class="space-y-2 flex-1">
+                        <span class="inline-block bg-[#7B2D2D] text-white px-2.5 py-0.5 rounded-full text-[10px] font-bold tracking-wider shadow-sm">📂 SELAMAT DATANG</span>
+                        <div class="bg-white border border-[#EBE7E1] rounded-2xl rounded-tl-none px-5 py-4 shadow-sm text-[#2D1A1A] leading-relaxed text-sm">
+                            <p class="font-semibold mb-1">Halo civitas akademika Universitas Sam Ratulangi!</p>
+                            <p class="text-gray-600">Saya adalah asisten virtual akademik resmi Anda. Silakan ajukan pertanyaan mengenai Peraturan Akademik (seperti beban SKS, cuti kuliah, KRS, DO), kalender akademik perkuliahan, visi misi universitas, sejarah, akreditasi, maupun profil institut.</p>
+                            <div class="mt-3 grid grid-cols-1 md:grid-cols-2 gap-2 text-xs">
+                                <button class="text-left p-2.5 rounded-xl border border-gray-100 hover:border-[#7B2D2D]/30 hover:bg-[#7B2D2D]/5 transition text-gray-700 font-medium flex items-center space-x-2" onclick="fillInput('Bagaimana syarat dan batas pengambilan cuti akademik di UNSRAT?')">
+                                    <i data-lucide="help-circle" class="w-4 h-4 text-[#7B2D2D]/70"></i>
+                                    <span>Syarat cuti akademik?</span>
+                                </button>
+                                <button class="text-left p-2.5 rounded-xl border border-gray-100 hover:border-[#7B2D2D]/30 hover:bg-[#7B2D2D]/5 transition text-gray-700 font-medium flex items-center space-x-2" onclick="fillInput('Jelaskan mengenai visi, misi, dan tujuan resmi Universitas Sam Ratulangi.')">
+                                    <i data-lucide="help-circle" class="w-4 h-4 text-[#7B2D2D]/70"></i>
+                                    <span>Visi misi UNSRAT?</span>
+                                </button>
+                                <button class="text-left p-2.5 rounded-xl border border-gray-100 hover:border-[#7B2D2D]/30 hover:bg-[#7B2D2D]/5 transition text-gray-700 font-medium flex items-center space-x-2" onclick="fillInput('Berapa beban SKS maksimum untuk mahasiswa baru semester satu?')">
+                                    <i data-lucide="help-circle" class="w-4 h-4 text-[#7B2D2D]/70"></i>
+                                    <span>Beban SKS semester satu?</span>
+                                </button>
+                                <button class="text-left p-2.5 rounded-xl border border-gray-100 hover:border-[#7B2D2D]/30 hover:bg-[#7B2D2D]/5 transition text-gray-700 font-medium flex items-center space-x-2" onclick="fillInput('Bagaimana mekanisme evaluasi putus studi atau DO mahasiswa?')">
+                                    <i data-lucide="help-circle" class="w-4 h-4 text-[#7B2D2D]/70"></i>
+                                    <span>Mekanisme evaluasi DO?</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Fixed Input Panel di Bawah -->
+            <div class="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-[#FAFAF8] via-[#FAFAF8] to-transparent pt-6 pb-6 px-8 flex flex-col items-center z-10">
+                <form id="chat-form" class="w-full max-w-4xl flex items-center bg-white border border-[#E4DFD9] rounded-2xl shadow-xl overflow-hidden focus-within:border-[#7B2D2D] focus-within:ring-2 focus-within:ring-[#7B2D2D]/20 transition duration-300">
+                    <input type="text" id="chat-input" placeholder="Ketik pertanyaan akademik Anda di sini (misal: 'berapa batas minimal IPK...')" class="flex-1 px-6 py-4.5 text-sm text-[#2D1A1A] focus:outline-none placeholder-gray-400 bg-white" autocomplete="off" required>
+                    <button type="submit" class="bg-[#7B2D2D] hover:bg-[#963E3E] active:bg-[#5C1F1F] text-white p-3.5 rounded-xl mr-3 shadow-md hover:shadow-lg active:scale-95 transition duration-200 flex items-center justify-center">
+                        <i data-lucide="send" class="w-5 h-5"></i>
+                    </button>
+                </form>
+                <div class="flex items-center space-x-1.5 text-[10px] text-gray-400 mt-2.5">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+                    <span>Tanggapan didasarkan pada peraturan formal universitas. Selalu verifikasi data penting ke sub-bagian akademik fakultas.</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: AREA DASHBOARD EVALUASI RAGAS -->
+        <div id="tab-eval" class="hidden flex-1 flex flex-col h-full overflow-y-auto px-8 py-6 space-y-6 custom-scrollbar pb-10 animate-fade-in">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="font-bold text-2xl text-[#2D1A1A] tracking-tight flex items-center space-x-2">
+                        <i data-lucide="line-chart" class="w-6 h-6 text-[#7B2D2D]"></i>
+                        <span>Laporan Pengujian & Evaluasi Kuantitatif Ragas</span>
+                    </h2>
+                    <p class="text-sm text-gray-500 mt-1">Komparasi performa sistem berbasis data ground-truth regulasi akademik UNSRAT.</p>
+                </div>
+                <button id="refresh-eval-btn" class="flex items-center space-x-2 px-4 py-2 border border-[#E4DFD9] hover:bg-[#7B2D2D]/5 hover:border-[#7B2D2D]/20 text-[#7B2D2D] rounded-xl text-xs font-semibold transition duration-150">
+                    <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+                    <span>Muat Ulang Data</span>
+                </button>
+            </div>
+
+            <!-- Grid Utama Dashboard -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Card Grafik Interaktif Chart.js -->
+                <div class="bg-white border border-[#EBE7E1] rounded-2xl p-6 shadow-sm space-y-4 flex flex-col">
+                    <div class="flex items-center justify-between">
+                        <h3 class="font-bold text-sm text-[#2D1A1A] flex items-center space-x-2">
+                            <span class="w-2.5 h-2.5 rounded-full bg-[#7B2D2D]"></span>
+                            <span>Visualisasi Metrik Performa Ragas</span>
+                        </h3>
+                        <span class="text-[10px] bg-amber-50 text-amber-700 px-2 py-0.5 rounded-full font-bold border border-amber-100">Nilai Lebih Tinggi = Lebih Baik</span>
+                    </div>
+                    <div class="relative h-72 flex-1">
+                        <canvas id="evalChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Card Hasil Uji Statistik Wilcoxon -->
+                <div class="bg-white border border-[#EBE7E1] rounded-2xl p-6 shadow-sm space-y-4 flex flex-col justify-between">
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <h3 class="font-bold text-sm text-[#2D1A1A] flex items-center space-x-2">
+                                <span class="w-2.5 h-2.5 rounded-full bg-[#7B2D2D]"></span>
+                                <span>Signifikansi Statistik Wilcoxon (Config A vs B)</span>
+                            </h3>
+                            <span class="text-[10px] bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-bold border border-green-100">Alpha = 0.05</span>
+                        </div>
+                        <div class="overflow-x-auto border border-[#F0ECE6] rounded-xl">
+                            <table class="w-full text-xs text-left text-gray-600">
+                                <thead class="bg-[#FAF9F6] text-[#2D1A1A] font-bold uppercase text-[10px] border-b border-[#F0ECE6]">
+                                    <tr>
+                                        <th class="px-4 py-3">Metrik Evaluasi</th>
+                                        <th class="px-4 py-3">P-Value</th>
+                                        <th class="px-4 py-3">Hasil Signifikansi</th>
+                                        <th class="px-4 py-3 text-right">Model Unggul</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="wilcoxon-table-body" class="divide-y divide-[#F0ECE6]">
+                                    <!-- Dimuat secara dinamis -->
+                                    <tr>
+                                        <td colspan="4" class="px-4 py-8 text-center text-gray-400">
+                                            <div class="flex flex-col items-center justify-center space-y-2">
+                                                <i data-lucide="loader" class="w-5 h-5 animate-spin text-gray-300"></i>
+                                                <span>Menghubungkan ke API evaluasi...</span>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="bg-[#FAF9F6] border border-[#F0ECE6] rounded-xl p-3 text-[10px] text-gray-500 leading-relaxed">
+                        <strong class="text-[#2D1A1A]">Analisis Kuantitatif Bab IV:</strong> Uji Wilcoxon signed-rank membuktikan apakah penambahan ukuran chunk (Config B) secara nyata meningkatkan pemahaman konteks dibandingkan dengan Config A.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Audit Log Kuantitatif (Bab IV Data Kunci) -->
+            <div class="bg-white border border-[#EBE7E1] rounded-2xl p-6 shadow-sm space-y-4">
+                <div class="flex items-center justify-between border-b border-[#FAF9F6] pb-3">
+                    <div class="flex items-center space-x-2">
+                        <i data-lucide="terminal" class="w-5 h-5 text-[#7B2D2D]"></i>
+                        <h3 class="font-bold text-sm text-[#2D1A1A]">Live Audit Log Transaksi Chat (Kuantitatif Real-Time)</h3>
+                    </div>
+                    <span class="text-[9px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded font-mono border border-gray-200">logs/transaksi_chat.csv</span>
+                </div>
+                <div class="overflow-x-auto border border-[#F0ECE6] rounded-xl shadow-inner">
+                    <table class="w-full text-xs text-left text-gray-600">
+                        <thead class="bg-[#FAF9F6] text-[#2D1A1A] font-bold uppercase text-[10px] border-b border-[#F0ECE6]">
+                            <tr>
+                                <th class="px-4 py-3.5">Waktu</th>
+                                <th class="px-4 py-3.5">Config</th>
+                                <th class="px-4 py-3.5">Model</th>
+                                <th class="px-4 py-3.5">Pertanyaan</th>
+                                <th class="px-4 py-3.5 text-center">Chunks</th>
+                                <th class="px-4 py-3.5">Best Score</th>
+                                <th class="px-4 py-3.5">Latency</th>
+                                <th class="px-4 py-3.5 font-mono text-right">Est. Tokens</th>
+                            </tr>
+                        </thead>
+                        <tbody id="audit-table-body" class="divide-y divide-[#F0ECE6]">
+                            <!-- Dimuat secara dinamis -->
+                            <tr>
+                                <td colspan="8" class="px-4 py-8 text-center text-gray-400">
+                                    <div class="flex flex-col items-center justify-center space-y-2">
+                                        <i data-lucide="loader" class="w-5 h-5 animate-spin text-gray-300"></i>
+                                        <span>Menunggu transaksi data...</span>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Fungsi helper untuk tombol pertanyaan cepat
+        function fillInput(text) {
+            const input = document.getElementById("chat-input");
+            input.value = text;
+            input.focus();
+        }
+    </script>
+    <script src="/static/js/app.js"></script>
+</body>
+</html>

@@ -68,6 +68,11 @@ def _load_ground_truth() -> pd.DataFrame:
             f"Format yang benar: {required_cols}"
         )
 
+    # Batasi maksimal 15 kueri (sesuai batasan kuota API dan instruksi pengguna)
+    if len(df) > 15:
+        logger.info(f"Membatasi dataset ground truth dari {len(df)} menjadi 15 kueri teratas.")
+        df = df.head(15)
+
     logger.info(f"Ground truth dimuat: {len(df)} pasang Q&A")
     return df
 
@@ -78,12 +83,14 @@ def _run_evaluation(df: pd.DataFrame, config: str) -> pd.DataFrame:
     Setiap pertanyaan dievaluasi INDEPENDEN (chat_history di-reset per pertanyaan).
     """
     from ragas import evaluate, EvaluationDataset
-    from ragas.metrics.collections import (
-        faithfulness,
-        answer_relevancy,
-        context_precision,
-        context_recall,
+    from ragas.metrics import (
+        Faithfulness,
+        AnswerRelevancy,
+        ContextPrecision,
+        ContextRecall,
     )
+    from ragas.llms import LangchainLLMWrapper
+    from ragas.embeddings import LangchainEmbeddingsWrapper
     from langchain_google_genai import ChatGoogleGenerativeAI, GoogleGenerativeAIEmbeddings
     from src.config import EMBEDDING_MODEL_NAME
 
@@ -129,11 +136,23 @@ def _run_evaluation(df: pd.DataFrame, config: str) -> pd.DataFrame:
     # Siapkan EvaluationDataset Ragas 0.4.x
     dataset = EvaluationDataset.from_list(rows)
 
-    # Gunakan EVALUATOR_MODEL (berbeda dari LLM_MODEL — mitigasi self-eval bias D-16)
-    evaluator_llm = ChatGoogleGenerativeAI(
+    # Load NVIDIA API Key secara aman dari environment (.env)
+    import os
+    nvidia_api_key = os.getenv("NVIDIA_API_KEY")
+    if not nvidia_api_key:
+        raise ValueError(
+            "NVIDIA_API_KEY tidak ditemukan di file .env!\n"
+            "Silakan tambahkan: NVIDIA_API_KEY=your_nvapi_key di berkas .env Anda."
+        )
+
+    # Gunakan ChatNVIDIA (Llama 3.1 70B atau Qwen) dari NVIDIA NIM sebagai evaluator Ragas
+    from langchain_nvidia_ai_endpoints import ChatNVIDIA
+    
+    logger.info(f"Menggunakan NVIDIA NIM {EVALUATOR_MODEL_NAME} sebagai Evaluator Ragas...")
+    evaluator_llm = ChatNVIDIA(
         model=EVALUATOR_MODEL_NAME,
-        google_api_key=GOOGLE_API_KEY,
-        temperature=0,
+        api_key=nvidia_api_key,
+        temperature=0,  # Nol demi stabilitas dan reproduktibilitas hasil Ragas
     )
     
     # Gunakan Google embedding model yang sama
@@ -145,20 +164,35 @@ def _run_evaluation(df: pd.DataFrame, config: str) -> pd.DataFrame:
 
     logger.info("Menjalankan ragas.evaluate()...")
 
-    # Mapping nama metrik ke objek Ragas
+    # Bungkus model LLM dan Embeddings untuk Ragas 0.4.x
+    wrapped_llm = LangchainLLMWrapper(evaluator_llm)
+    wrapped_embeddings = LangchainEmbeddingsWrapper(evaluator_embeddings)
+
+    # Inisialisasi masing-masing objek metrik secara eksplisit dengan llm
     metric_objects = {
-        "faithfulness":      faithfulness,
-        "answer_relevancy":  answer_relevancy,
-        "context_precision": context_precision,
-        "context_recall":    context_recall,
+        "faithfulness":      Faithfulness(llm=wrapped_llm),
+        "answer_relevancy":  AnswerRelevancy(llm=wrapped_llm),
+        "context_precision": ContextPrecision(llm=wrapped_llm),
+        "context_recall":    ContextRecall(llm=wrapped_llm),
     }
     selected_metrics = [metric_objects[m] for m in METRICS_COLS if m in metric_objects]
+
+    # Konfigurasi run settings untuk memitigasi kendala API rate limit (TPM/RPM)
+    from ragas.run_config import RunConfig
+    run_config = RunConfig(
+        timeout=300,        # Batas waktu maksimal operasi per kueri (detik)
+        max_retries=10,     # Jumlah percobaan ulang saat terkena limit
+        max_wait=60,        # Jeda waktu tunggu antar percobaan ulang
+        max_workers=1,      # Jalankan secara berurutan (sequential) untuk menghindari 429
+        log_tenacity=True,  # Catat log tenacity saat melakukan retrying
+    )
 
     results = evaluate(
         dataset=dataset,
         metrics=selected_metrics,
         llm=evaluator_llm,
         embeddings=evaluator_embeddings,
+        run_config=run_config,
     )
 
     results_df = results.to_pandas()

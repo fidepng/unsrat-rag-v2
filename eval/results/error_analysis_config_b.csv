@@ -1,8 +1,98 @@
 ﻿rank,user_input,reference,response,avg_metric_score,failure_type,failure_notes
-1,Apa visi Universitas Sam Ratulangi?,"Visi UNSRAT adalah menjadi universitas yang unggul, berbudaya, dan berdaya saing global menuju universitas riset yang berlandaskan Pancasila.","Halo! Berdasarkan dokumen yang tersedia, visi Universitas Sam Ratulangi (UNSRAT) adalah sebagai **""Excellent University""**. 
+1,Berapakah jumlah SKS minimal dan maksimal yang harus dikumpulkan untuk menyelesaikan pendidikan program Sarjana (S1) di UNSRAT?,"Untuk menyelesaikan program Sarjana (S1) di UNSRAT, mahasiswa harus mengumpulkan minimal 144 SKS dan maksimal 160 SKS sesuai dengan kurikulum program studi.","Berdasarkan dokumen konteks yang disediakan, saya **tidak menemukan informasi** mengenai jumlah total SKS minimal dan maksimal yang harus dikumpulkan untuk menyelesaikan pendidikan program Sarjana (S1) di UNSRAT.
 
-Namun, dokumen yang disediakan tidak menjabarkan rumusan lengkap atau detail dari visi tersebut secara panjang lebar. Jika Anda membutuhkan informasi lebih rinci mengenai visi UNSRAT, silakan menghubungi bagian administrasi kampus terkait, ya. Terima kasih!",,,
-2,Berapakah jumlah maksimal SKS yang dapat diambil mahasiswa per semester?,Jumlah SKS maksimal yang dapat diambil oleh mahasiswa didasarkan pada Indeks Prestasi Semester (IPS) sebelumnya. IPS >= 3.00 dapat mengambil maksimal 24 SKS. IPS 2.00 - 2.99 maksimal 20 SKS. IPS < 2.00 maksimal 15 SKS. Sedangkan mahasiswa baru di semester pertama dibatasi maksimal 20 SKS.,"Halo! Berdasarkan Peraturan Rektor UNSRAT Nomor 01 Tahun 2025, jumlah maksimal SKS yang dapat diambil oleh mahasiswa per semester adalah sebagai berikut:
+Dokumen yang ada hanya menyebutkan bahwa Peraturan Rektor Nomor 01 Tahun 2025 mengatur tentang beban belajar (SKS) secara umum, serta memberikan rincian spesifik untuk kasus tertentu seperti:
+*   Maksimal SKS yang bisa direkognisi melalui Rekognisi Pembelajaran Lampau (RPL) adalah 70% dari total beban belajar.
+*   Maksimal SKS untuk pembelajaran di program studi berbeda dalam UNSRAT adalah 20 SKS.
+*   Maksimal SKS untuk pembelajaran di luar UNSRAT adalah 40 SKS.
 
-1. **Semester 1 dan 2 (Mahasiswa Baru):**
-   * Maksimal **20 SKS** (mahasiswa memprogram mata kuliah sesuai paket pada kurikulum",,,
+Namun, angka total beban belajar standar untuk lulus S1 tidak tercantum dalam ringkasan dokumen ini.
+
+Untuk mendapatkan informasi yang akurat mengenai total SKS wajib, saya menyarankan Anda untuk menghubungi **Bagian Administrasi Akademik (BAA)** di fakultas masing-masing atau **Direktorat Pendidikan dan Pengajaran UNSRAT**.",0.17857142857142858,,
+2,Kapan batas akhir pengunggahan nilai mata kuliah Semester Genap 2025/2026 ke Portal INSPIRE?,Batas akhir unggah nilai mata kuliah Semester Genap 2025/2026 ke Portal INSPIRE adalah tanggal 30 Juni 2026 pukul 23:59 WITA.,"Berdasarkan dokumen **Kalender Akademik UNSRAT Semester Genap 2025/2026**, batas akhir pengunggahan nilai mata kuliah ke Portal INSPIRE adalah pada:
+
+📅 **30 Juni 2026**, pukul **23.59 WITA**.
+
+Setelah tanggal tersebut, yaitu mulai **1 Juli 2026**, nilai mata kuliah dinyatakan permanen dan tidak dapat diubah lagi kecuali melalui prosedur khusus yang disetujui oleh Rektor.
+
+Jika Anda memiliki pertanyaan lebih lanjut atau membutuhkan bantuan terkait proses akademik, silakan hubungi bagian administrasi kampus atau fakultas masing-masing.",0.7114591594282057,,
+3,Kapan periode pendaftaran wisuda online untuk Wisuda Periode V pada Semester Genap 2025/2026 di UNSRAT?,Pendaftaran wisuda online untuk Wisuda Periode V dijadwalkan dari tanggal 23 Februari sampai dengan 26 Maret 2026.,"Halo! Berdasarkan dokumen Kalender Akademik UNSRAT Semester Genap 2025/2026, periode **Pendaftaran Wisuda Online** untuk **Wisuda Periode V** adalah:
+
+🗓️ **23 Februari – 26 Maret 2026**
+
+Pastikan Anda menyelesaikan pendaftaran dalam rentang waktu tersebut agar dapat mengikuti proses wisuda selanjutnya. Jika ada pertanyaan lebih lanjut mengenai persyaratan atau teknis pendaftaran, silakan hubungi bagian administrasi kampus terkait.
+
+Semoga sukses! 🎓",0.7362346907853851,,
+4,Sebutkan nama-nama perguruan tinggi swasta yang menjadi embrio berdirinya UNSRAT!,Embrio berdirinya Universitas Sam Ratulangi adalah Universitas Pinaesaan (didirikan 1 Oktober 1954 di Tondano) dan Universitas Permesta (didirikan 23 September 1957 di Manado).,"Berdasarkan dokumen konteks yang disediakan, perguruan tinggi yang menjadi embrio berdirinya Universitas Sam Ratulangi adalah:
+
+1.  **Universitas Pinaesaan** (didirikan tanggal 1 Oktober 1954 di Tondano).
+2.  **Universitas Permesta** (didirikan tanggal 23 September 1957 di Manado).
+
+Kedua universitas tersebut disebutkan secara eksplisit dalam *Sumber 1* sebagai embrio dari berkembangnya Universitas Sam Ratulangi di masa depan.",0.8529424593750631,,
+5,Bagaimana kriteria mahasiswa sarjana (S1) UNSRAT yang dikenakan sanksi Drop Out (DO)?,Mahasiswa program Sarjana (S1) dikenakan sanksi Drop Out (DO) apabila: 1) tidak melakukan registrasi akademik/pengisian KRS selama 2 semester berturut-turut; 2) pada evaluasi 4 semester pertama tidak mengumpulkan minimal 30 SKS dengan IPK minimal 2.00; atau 3) melebihi batas waktu studi maksimal 14 semester.,"Halo! Berdasarkan **Peraturan Rektor UNSRAT Nomor 01 Tahun 2025**, berikut adalah kriteria mahasiswa program Sarjana (S1) yang dikenakan sanksi *Drop Out* (DO) atau putus studi:
+
+**1. Alasan Administratif**
+Mahasiswa dinyatakan DO jika tidak melakukan registrasi akademik atau pengisian Kartu Rencana Studi (KRS) selama **2 semester berturut-turut**.
+*(Referensi: Sumber 1, Pasal 28 ayat 2)*
+
+**2. Alasan Akademik (Evaluasi Semester 4)**
+Mahasiswa dinyatakan DO jika pada evaluasi di **akhir semester 4** memenuhi kedua kondisi berikut secara bersamaan:
+*   Jumlah SKS yang lulus **kurang dari 45 SKS**; **DAN**
+*   Indeks Prestasi Kumulatif (IPK) **kurang dari 2,00**.
+*(Referensi: Sumber 2, Pasal 62 ayat 4)*
+
+*Catatan: Terdapat perbedaan angka minimal SKS antara Sumber 1 (30 SKS) dan Sumber 2 (45 SKS). Mengingat Sumber 2 merupakan bagian dari bab evaluasi hasil belajar yang lebih rinci dan spesifik mengenai mekanisme putus studi akademik, maka kriteria <45 SKS dan IPK <2,00 pada akhir semester 4 adalah acuan utama evaluasi akademik.*
+
+**3. Melebihi Batas Waktu Studi**
+Mahasiswa dinyatakan DO jika masa studinya melebihi batas maksimal yang ditentukan, yaitu **14 semester (7 tahun)**.
+*(Referensi: Sumber 1, Pasal 28 ayat 2 & Sumber 2, Pasal 62 ayat 14)*
+
+**4. Prakarsa Sendiri**
+Mahasiswa juga dinyatakan putus studi jika mengundurkan diri atas kemauan sendiri.
+*(Referensi: Sumber 2, Pasal 62 ayat 3)*
+
+**Penting untuk diketahui:**
+Mahasiswa yang telah dinyatakan putus studi **tidak dapat kembali** untuk melanjutkan studi di UNSRAT.
+*(Referensi: Sumber 2, Pasal 62 ayat 15)*
+
+Jika Anda membutuhkan klarifikasi lebih lanjut mengenai status akademik spesifik, disarankan untuk menghubungi bagian administrasi fakultas atau Biro Akademik UNSRAT langsung.",0.860221145406495,,
+6,Berapakah batas waktu studi maksimal untuk program Sarjana (S1) di Universitas Sam Ratulangi?,Batas waktu studi maksimal untuk program Sarjana (S1) di Universitas Sam Ratulangi adalah 14 semester atau 7 tahun akademik.,"Berdasarkan dokumen Peraturan Rektor UNSRAT Nomor 01 Tahun 2025 yang tersedia, batas waktu studi maksimal untuk program Sarjana (S1) di Universitas Sam Ratulangi adalah **14 semester** atau setara dengan **7 tahun** akademik.
+
+Informasi ini tercantum dalam:
+*   **BAB III Pasal 28 ayat (1)**: Menyatakan secara tegas bahwa batas waktu studi maksimal adalah 14 semester.
+*   **BAB IV Bagian Kesatu (Pasal 9)**: Mengonfirmasi kembali bahwa masa studi maksimal adalah 14 semester, meskipun masa tempuh kurikulum normalnya adalah 7–8 semester.
+
+Mahasiswa yang melebihi batas waktu studi ini akan dikenakan sanksi *Drop Out* (DO).",0.8747337790886651,,
+7,Bagaimana falsafah hidup Sam Ratulangi yang menjadi motto UNSRAT?,"Falsafah hidup Dr. Sam Ratulangi yang diabadikan sebagai motto UNSRAT adalah ""Si Tou Timou Tumou Tou"", yang berarti ""Manusia dilahirkan untuk memanusiakan orang lain"".","Halo! Berdasarkan dokumen yang tersedia, falsafah hidup Dr. Sam Ratulangi yang menjadi motto dan semangat bagi seluruh insan akademik Universitas Sam Ratulangi (UNSRAT) adalah:
+
+**""Si Tou Timou Tumou Tou""**
+
+Falsafah ini memiliki makna: **""Manusia dilahirkan untuk memanusiakan orang lain.""**
+
+Harapannya, nilai luhur ini tetap terpatri di dalam dada setiap sivitas akademika UNSRAT dalam menuntut ilmu dan mengabdikan diri demi pembangunan masyarakat, bangsa, dan negara.",0.8756256527044823,,
+8,Berapa beban studi maksimum bagi mahasiswa baru semester pertama di UNSRAT?,Beban studi maksimum bagi mahasiswa baru pada semester pertama adalah 20 SKS.,"Halo! Berdasarkan dokumen **Peraturan Rektor UNSRAT Nomor 01 Tahun 2025**, berikut adalah informasi mengenai beban studi untuk mahasiswa baru:
+
+Beban studi maksimum bagi mahasiswa baru pada **semester pertama** adalah **20 SKS**.
+
+Hal ini diatur dalam:
+*   **Pasal 10 ayat (2)** yang menyatakan secara khusus bahwa beban studi maksimum semester pertama bagi mahasiswa baru adalah 20 SKS.
+*   **Pasal 27 ayat (1)** yang juga menegaskan bahwa untuk Semester 1 dan 2, beban belajar maksimal adalah 20 SKS.
+
+Selain itu, perlu diingat bahwa pada semester 1 dan 2, mahasiswa memprogram mata kuliah sesuai dengan **paket kurikulum** yang telah ditetapkan oleh masing-masing program studi.
+
+Semoga informasi ini membantu Anda dalam menyusun Kartu Rencana Studi (KRS)! Jika ada pertanyaan lain, silakan tanyakan.",0.9113476549319107,,
+9,Kapan tanggal perkuliahan Semester Genap Tahun Akademik 2025/2026 di UNSRAT dimulai dan kapan berakhir?,"Berdasarkan kalender akademik, awal perkuliahan Semester Genap Tahun Akademik 2025/2026 dimulai pada tanggal 9 Februari 2026 dan akhir kuliah jatuh pada tanggal 22 Mei 2026.","Berdasarkan dokumen Kalender Akademik UNSRAT Semester Genap Tahun Akademik 2025/2026, berikut adalah jadwal perkuliahan:
+
+*   **Tanggal Mulai:** Perkuliahan dimulai pada **9 Februari 2026**.
+*   **Tanggal Berakhir:** Perkuliahan berakhir pada **22 Mei 2026**.
+
+Setelah tanggal tersebut, mahasiswa akan memasuki masa Ujian Akhir Semester (UAS) yang dilaksanakan pada 1–5 Juni 2026.
+
+Semoga informasi ini membantu perencanaan studi Anda!",0.9166666666541667,,
+10,Berapakah SKS maksimal yang boleh diambil mahasiswa jika memiliki IPS 3.25 pada semester sebelumnya?,"Jika mahasiswa memiliki Indeks Prestasi Semester (IPS) lebih dari atau sama dengan 3.00 (dalam kasus ini IPS 3.25), mahasiswa dapat mengambil beban studi maksimal 24 SKS pada semester berikutnya.","Halo! Berdasarkan **Peraturan Rektor UNSRAT Nomor 01 Tahun 2025** (BAB II, Pasal 10 ayat 3), berikut adalah ketentuan beban studi berdasarkan Indeks Prestasi Semester (IPS):
+
+Jika Anda memiliki **IPS 3.25** pada semester sebelumnya, maka Anda masuk dalam kategori **IPS ≥ 3.00**.
+
+Oleh karena itu, beban studi maksimal yang boleh Anda ambil pada semester berikutnya adalah **24 SKS**.
+
+Semoga informasi ini membantu perencanaan studi Anda! Jika ada pertanyaan lebih lanjut, silakan hubungi bagian administrasi kampus terkait.",0.9339779775656758,,

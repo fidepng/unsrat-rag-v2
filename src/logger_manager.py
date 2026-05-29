@@ -158,6 +158,15 @@ def log_chat_transaction(
             df_new.to_csv(CHAT_LOG_PATH, index=False, encoding="utf-8-sig")
         else:
             df_new.to_csv(CHAT_LOG_PATH, mode="a", header=False, index=False, encoding="utf-8-sig")
+            
+        # 4. Tulis log terstruktur untuk mempermudah debugging obrolan
+        clean_query = user_query.replace("\n", " ").strip()
+        clean_response = response_text.replace("\n", " ").strip()
+        log_system_event(
+            "info",
+            "CHAT_RESPONSE",
+            f"Query: '{clean_query}' | Response: '{clean_response}' | Model: {model_llm} | Config: {config_retrieval}"
+        )
     except Exception as e:
         log_system_event("error", "LOGGER_IO", f"Gagal menulis chat CSV: {e}")
 

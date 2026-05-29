@@ -1,377 +1,296 @@
 """
-app.py
-Entry point UI Streamlit untuk sistem chatbot RAG UNSRAT.
-Dua tab: Chat (RAG real-time) dan Evaluasi (tampilkan hasil eval).
-Semua logika bisnis ada di src/ — app.py hanya UI dan pemanggilan fungsi.
+app.py — Entry point Backend API FastAPI, Sistem Chatbot RAG Akademik UNSRAT
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Menggantikan antarmuka Streamlit yang lama dengan API backend modern berbasis FastAPI.
+Menyediakan REST API untuk konfigurasi, RAG streaming chat (Server-Sent Events / SSE),
+dashboard evaluasi Ragas kuantitatif, dan logging transaksi audit skripsi secara eksplisit.
 """
 
-import streamlit as st
-import pandas as pd
+import os
 import time
+import json
 from pathlib import Path
-from src.logger_manager import log_chat_transaction
-
+import pandas as pd
+from fastapi import FastAPI, Request, HTTPException
+from fastapi.responses import HTMLResponse, StreamingResponse
+from fastapi.staticfiles import StaticFiles
+from pydantic import BaseModel
 
 from src.config import (
     AVAILABLE_MODELS,
     LLM_MODEL_NAME,
     EVAL_RESULTS_DIR,
     METRICS_COLS,
-    SESSION_MESSAGES,
-    SESSION_ACTIVE_CONFIG,
 )
 from src.chain import get_response, detect_category, reinitialize_llm
+from src.logger_manager import log_chat_transaction, log_system_event
 
-# ── PAGE CONFIG ──────────────────────────────────────────────────────────────
-st.set_page_config(
-    page_title="Asisten Akademik UNSRAT",
-    page_icon="🎓",
-    layout="wide",
+# Inisialisasi folder static untuk Javascript secara otomatis dan aman
+os.makedirs("static/js", exist_ok=True)
+
+# Inisialisasi FastAPI
+app = FastAPI(
+    title="Asisten Akademik UNSRAT RAG API",
+    description="Backend API untuk Sistem Chatbot Informasi Akademik UNSRAT berbasis RAG",
+    version="2.0.0"
 )
 
-# ── CUSTOM CSS ───────────────────────────────────────────────────────────────
-st.markdown("""
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+# Mount directory static untuk aset Javascript/CSS
+app.mount("/static", StaticFiles(directory="static"), name="static")
 
-:root {
-  --color-primary:      #7B2D2D;
-  --color-primary-alt:  #8B1A2B;
-  --color-primary-dark: #5C1F1F;
-  --color-primary-light:#A84545;
-  --font-main: 'Inter', sans-serif;
-}
+# ── PYDANTIC SCHEMAS ─────────────────────────────────────────────────────────
 
-html, body, [class*="css"] {
-  font-family: var(--font-main);
-}
+class ChatRequest(BaseModel):
+    query: str
+    config: str
+    model: str
+    chat_history: list[dict]
 
-.stApp {
-  background: linear-gradient(135deg, #1a0a0a 0%, #2d1515 100%);
-  color: #f0e6e6;
-}
+class LogRequest(BaseModel):
+    config_retrieval: str
+    model_llm: str
+    user_query: str
+    category_detected: str
+    chunks_retrieved_count: int
+    retrieved_chunk_ids: list[str]
+    best_similarity_score: float
+    average_similarity_score: float
+    response_time_seconds: float
+    response_text: str
+    found_state: bool
+    prompt_payload_for_token_calc: str
 
-.main-header {
-  background: linear-gradient(90deg, var(--color-primary-dark), var(--color-primary));
-  padding: 1.5rem 2rem;
-  border-radius: 12px;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 20px rgba(123, 45, 45, 0.4);
-}
+# ── ROUTERS & ENDPOINTS ──────────────────────────────────────────────────────
 
-.main-header h1 {
-  color: #fff;
-  margin: 0;
-  font-size: 1.6rem;
-  font-weight: 700;
-}
+@app.get("/", response_class=HTMLResponse)
+async def serve_index():
+    """
+    Melayani single page application frontend (index.html).
+    Jika index.html belum dibuat (Task 2 belum dijalankan), menyajikan halaman info API.
+    """
+    index_path = Path("index.html")
+    if index_path.exists():
+        with open(index_path, "r", encoding="utf-8") as f:
+            return f.read()
+    else:
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>UNSRAT RAG API - Standby</title>
+            <style>
+                body { font-family: system-ui, sans-serif; text-align: center; padding: 50px; background: #FAF9F6; color: #2D1A1A; }
+                h1 { color: #7B2D2D; }
+                a { color: #A84545; font-weight: bold; text-decoration: none; }
+                a:hover { text-decoration: underline; }
+            </style>
+        </head>
+        <body>
+            <h1>🎓 UNSRAT RAG API Backend Server</h1>
+            <p>Server FastAPI berhasil diinisialisasi dan berjalan lancar!</p>
+            <p>Halaman <code>index.html</code> (Frontend SPA) belum dibuat.</p>
+            <p>Silakan buka Swagger UI di <a href="/docs">/docs</a> untuk menguji API.</p>
+        </body>
+        </html>
+        """
 
-.main-header p {
-  color: #f0c0c0;
-  margin: 0.25rem 0 0 0;
-  font-size: 0.85rem;
-}
+@app.get("/api/config")
+async def get_config():
+    """
+    Mengembalikan data konfigurasi awal sistem untuk UI frontend.
+    """
+    return {
+        "available_models": AVAILABLE_MODELS,
+        "default_model": LLM_MODEL_NAME,
+        "default_config": "b"
+    }
 
-.category-badge {
-  display: inline-block;
-  background: var(--color-primary);
-  color: white;
-  padding: 2px 10px;
-  border-radius: 12px;
-  font-size: 0.72rem;
-  font-weight: 500;
-  margin-bottom: 0.5rem;
-}
+@app.post("/api/chat")
+async def chat_endpoint(request: ChatRequest):
+    """
+    RAG Streaming API Endpoint (EventSource / Server-Sent Events).
+    
+    Menerima request query, config, model LLM pilihan, dan history percakapan.
+    Melakukan re-inisialisasi model jika berganti, memanggil get_response secara single-call
+    untuk efisiensi biaya kuota API, dan mengalirkan token teks secara real-time.
+    Di event akhir, mengirimkan metadata 'sources' dan 'meta_logging' untuk client audit.
+    """
+    try:
+        # Reinisialisasi model LLM aktif secara instan jika ada perbedaan
+        reinitialize_llm(request.model)
+    except Exception as e:
+        log_system_event("error", "LLM_INIT_FAIL", f"Gagal reinisialisasi model {request.model}: {e}")
+        raise HTTPException(status_code=500, detail=f"Gagal memuat model LLM: {str(e)}")
 
-.disclaimer {
-  background: rgba(123, 45, 45, 0.15);
-  border: 1px solid var(--color-primary);
-  border-radius: 8px;
-  padding: 0.75rem 1rem;
-  font-size: 0.78rem;
-  color: #d4a0a0;
-  margin-top: 1rem;
-}
-
-.stButton > button {
-  background: var(--color-primary);
-  color: white;
-  border: none;
-  border-radius: 8px;
-  font-family: var(--font-main);
-  font-weight: 500;
-  transition: background 0.2s;
-}
-
-.stButton > button:hover {
-  background: var(--color-primary-light);
-}
-</style>
-""", unsafe_allow_html=True)
-
-
-# ── SESSION STATE INIT ────────────────────────────────────────────────────────
-def _init_session_state() -> None:
-    """Inisialisasi session state keys jika belum ada."""
-    if SESSION_MESSAGES not in st.session_state:
-        st.session_state[SESSION_MESSAGES] = []
-    if SESSION_ACTIVE_CONFIG not in st.session_state:
-        st.session_state[SESSION_ACTIVE_CONFIG] = "b"
-    if "active_model" not in st.session_state:
-        st.session_state["active_model"] = LLM_MODEL_NAME
-
-
-def _reset_conversation() -> None:
-    """Hapus riwayat percakapan dan reset session state."""
-    st.session_state[SESSION_MESSAGES] = []
-
-
-# ── SIDEBAR ───────────────────────────────────────────────────────────────────
-def _render_sidebar() -> None:
-    """Render sidebar dengan config switcher, model switcher, dan reset button."""
-    with st.sidebar:
-        st.markdown("### ⚙️ Pengaturan")
-        st.divider()
-
-        # Config switcher
-        config_labels = {"a": "Config A — RAG (500 char)", "b": "Config B — RAG (2000 char)", "c": "Config C — BM25"}
-        prev_config = st.session_state[SESSION_ACTIVE_CONFIG]
-        selected_label = st.radio(
-            "Konfigurasi Retrieval",
-            options=list(config_labels.values()),
-            index=list(config_labels.keys()).index(prev_config),
-        )
-        new_config = [k for k, v in config_labels.items() if v == selected_label][0]
-
-        if new_config != prev_config:
-            st.session_state[SESSION_ACTIVE_CONFIG] = new_config
-            _reset_conversation()
-            st.rerun()
-
-        st.divider()
-
-        # Model switcher
-        prev_model = st.session_state["active_model"]
-        selected_model = st.selectbox(
-            "Model LLM",
-            options=AVAILABLE_MODELS,
-            index=AVAILABLE_MODELS.index(prev_model) if prev_model in AVAILABLE_MODELS else 0,
-        )
-        if selected_model != prev_model:
-            reinitialize_llm(selected_model)
-            st.session_state["active_model"] = selected_model
-
-        st.divider()
-
-        # Reset button
-        if st.button("🔄 Reset Percakapan", use_container_width=True):
-            _reset_conversation()
-            st.rerun()
-
-        st.divider()
-
-        # Info panel
-        active_config = st.session_state[SESSION_ACTIVE_CONFIG]
-        st.markdown(f"""
-        **Config aktif:** `{active_config.upper()}`
-        **Model aktif:** `{st.session_state['active_model']}`
-        """)
-
-
-# ── TAB 1: CHAT ───────────────────────────────────────────────────────────────
-def _render_chat_tab() -> None:
-    """Render tab chat utama dengan streaming response dan sitasi sumber."""
-    # Header
-    st.markdown("""
-    <div class="main-header">
-        <h1>🎓 Asisten Informasi Akademik UNSRAT</h1>
-        <p>Didukung oleh arsitektur RAG + Google Gemini</p>
-    </div>
-    """, unsafe_allow_html=True)
-
-    messages = st.session_state[SESSION_MESSAGES]
-    active_config = st.session_state[SESSION_ACTIVE_CONFIG]
-
-    # Tampilkan riwayat chat
-    for msg in messages:
-        with st.chat_message(msg["role"]):
-            if msg["role"] == "assistant" and "category" in msg:
-                st.markdown(
-                    f'<span class="category-badge">📂 {msg["category"]}</span>',
-                    unsafe_allow_html=True,
-                )
-            st.markdown(msg["content"])
-            if msg["role"] == "assistant" and msg.get("sources"):
-                with st.expander(f"📚 Lihat Sumber ({len(msg['sources'])} referensi)"):
-                    for i, src in enumerate(msg["sources"], 1):
-                        st.markdown(f"**[{i}] {src['title']} — {src['bab']}**")
-                        st.text(src["preview"])
-
-    # Input pengguna
-    if user_input := st.chat_input("Ketik pertanyaan Anda..."):
-        # Tampilkan pesan user
-        with st.chat_message("user"):
-            st.markdown(user_input)
-        messages.append({"role": "user", "content": user_input})
-
-        # Deteksi kategori (label UI saja)
-        category = detect_category(user_input)
-
-        # SINGLE API CALL: get_response() mengembalikan stream + sources sekaligus
-        # Tidak ada second call — sources dari retrieval (sebelum LLM), bukan dari LLM.
-        result = get_response(
-            query=user_input,
-            config=active_config,
-            chat_history=messages[:-1],  # exclude pesan user yang baru saja ditambahkan
-            streaming=True,
-        )
-        sources      = result["sources"]  # Tersedia langsung dari retrieval
-        stream_gen   = result["stream"]   # Generator untuk st.write_stream
-        found        = result["found"]
-        meta_logging = result.get("_meta_logging")
-
-        # Tampilkan streaming response
-        with st.chat_message("assistant"):
-            st.markdown(
-                f'<span class="category-badge">📂 {category}</span>',
-                unsafe_allow_html=True,
-            )
-            full_response = st.write_stream(stream_gen)
-
-            # Tampilkan sitasi sumber langsung setelah streaming selesai
-            if sources:
-                with st.expander(f"📚 Lihat Sumber ({len(sources)} referensi)"):
-                    for i, src in enumerate(sources, 1):
-                        st.markdown(f"**[{i}] {src['title']} — {src['bab']}**")
-                        st.text(src["preview"])
-
-        # Catat transaksi setelah streaming selesai (menggunakan metadata log dari get_response)
-        if found and meta_logging:
-            duration = time.time() - meta_logging["t_start"]
-            log_chat_transaction(
-                config_retrieval=active_config,
-                model_llm=st.session_state.get("active_model", meta_logging["active_model"]),
-                user_query=user_input,
-                category_detected=meta_logging["category"],
-                chunks_retrieved_count=len(sources),
-                retrieved_chunk_ids=meta_logging["chunk_ids"],
-                best_similarity_score=meta_logging["best_score"],
-                average_similarity_score=meta_logging["avg_score"],
-                response_time_seconds=duration,
-                response_text=full_response,
-                found_state=True,
-                prompt_payload_for_token_calc=meta_logging["prompt_payload"],
-            )
-
-        # Simpan ke session state
-        messages.append({
-            "role":     "assistant",
-            "content":  full_response,
-            "category": category,
-            "sources":  sources,
-        })
-
-    # Disclaimer
-    st.markdown("""
-    <div class="disclaimer">
-        ⚠️ <strong>Disclaimer:</strong> Sistem ini adalah prototipe penelitian.
-        Informasi yang disajikan bersumber dari dokumen yang tersedia dan dapat
-        memiliki keterbatasan. Untuk keputusan akademik penting, selalu verifikasi
-        dengan pihak Akademik UNSRAT secara langsung.
-    </div>
-    """, unsafe_allow_html=True)
-
-
-# ── TAB 2: EVALUASI ───────────────────────────────────────────────────────────
-def _render_evaluation_tab() -> None:
-    """Render tab hasil evaluasi Ragas (read-only dari eval/results/)."""
-    st.markdown("## 📊 Hasil Evaluasi Ragas")
-    st.markdown(
-        "Halaman ini menampilkan hasil evaluasi yang sudah dijalankan via CLI. "
-        "Untuk menjalankan evaluasi baru, gunakan terminal."
+    # Single-call get_response dengan streaming=True (K-01 Compliance)
+    result = get_response(
+        query=request.query,
+        config=request.config,
+        chat_history=request.chat_history,
+        streaming=True
     )
+    
+    sources = result.get("sources", [])
+    stream_gen = result.get("stream")
+    found = result.get("found", False)
+    meta_logging = result.get("_meta_logging")
 
+    if not stream_gen:
+        fallback_text = result.get("answer", "Maaf, saya tidak menemukan informasi yang relevan dalam dokumen yang tersedia.")
+        
+        def fallback_generator():
+            # Alirkan teks fallback sebagai satu token
+            yield f"data: {json.dumps({'token': fallback_text})}\n\n"
+            # Kirim payload penutup dengan status found=False
+            payload = {
+                "sources": [],
+                "found": False,
+                "full_response": fallback_text,
+                "meta_logging": None
+            }
+            yield f"data: {json.dumps(payload)}\n\n"
+            
+        return StreamingResponse(fallback_generator(), media_type="text/event-stream")
+
+    def event_generator():
+        full_response = ""
+        
+        # 1. Alirkan token teks real-time
+        try:
+            for token in stream_gen:
+                full_response += token
+                yield f"data: {json.dumps({'token': token})}\n\n"
+        except Exception as e:
+            log_system_event("error", "STREAM_TOKEN_ERROR", f"Error saat streaming token: {e}")
+            err_token = f"\n\n[Error Stream: {str(e)}]"
+            yield f"data: {json.dumps({'token': err_token})}\n\n"
+        
+        # 2. Alirkan sources referensi & status found di akhir stream
+        payload = {
+            "sources": sources,
+            "found": found,
+            "full_response": full_response,
+            "meta_logging": meta_logging
+        }
+        yield f"data: {json.dumps(payload)}\n\n"
+        
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
+@app.get("/api/evaluation")
+async def get_evaluation():
+    """
+    Dashboard Evaluasi API Endpoint.
+    
+    Membaca hasil evaluasi offline di folder 'eval/results/' (hasil_config_a.csv,
+    hasil_config_b.csv, hasil_config_c.csv) dan statistical_test.csv secara lokal,
+    kemudian merangkum data statistik rata-rata (mean) dan standar deviasi (std)
+    serta uji Wilcoxon untuk visualisasi Chart.js.
+    Membaca juga 5 transaksi chat terbaru dari logs/transaksi_chat.csv untuk live audit log.
+    """
     result_files = {
         "a": EVAL_RESULTS_DIR / "hasil_config_a.csv",
         "b": EVAL_RESULTS_DIR / "hasil_config_b.csv",
-        "c": EVAL_RESULTS_DIR / "hasil_config_c.csv",
+        "c": EVAL_RESULTS_DIR / "hasil_config_c.csv"
     }
-    stats_file  = EVAL_RESULTS_DIR / "statistical_test.csv"
-    chart_file  = EVAL_RESULTS_DIR / "perbandingan_visual.png"
-
-    existing = {k: v for k, v in result_files.items() if v.exists()}
-
-    if not existing:
-        st.info(
-            "📂 Belum ada hasil evaluasi.\n\n"
-            "Jalankan evaluasi via terminal:\n"
-            "```\n"
-            "python evaluation.py --config a\n"
-            "python evaluation.py --config b\n"
-            "python evaluation.py --config c\n"
-            "python evaluation.py --stats\n"
-            "python evaluation.py --visualize\n"
-            "```"
-        )
-        return
-
-    # Tampilkan tabel per config
-    for config_key, filepath in existing.items():
-        df = pd.read_csv(filepath)
-        st.markdown(f"### Config {config_key.upper()}: `{filepath.name}`")
-        # Tampilkan aggregasi metrik
-        agg_data = {}
-        for metric in METRICS_COLS:
-            if metric in df.columns:
-                agg_data[metric] = f"{df[metric].mean():.3f} ± {df[metric].std():.3f}"
-        if "response_time_seconds" in df.columns:
-            agg_data["response_time"] = (
-                f"{df['response_time_seconds'].mean():.2f} ± "
-                f"{df['response_time_seconds'].std():.2f} detik"
-            )
-        if agg_data:
-            st.table(pd.DataFrame(agg_data, index=["mean ± std"]).T)
-
-    # Tampilkan tabel Wilcoxon jika ada
+    stats_file = EVAL_RESULTS_DIR / "statistical_test.csv"
+    
+    configs_data = {}
+    for key, filepath in result_files.items():
+        if filepath.exists():
+            try:
+                df = pd.read_csv(filepath)
+                metrics_summary = {}
+                for metric in METRICS_COLS:
+                    if metric in df.columns:
+                        mean_val = df[metric].mean()
+                        std_val = df[metric].std()
+                        metrics_summary[metric] = {
+                            "mean": float(mean_val) if pd.notna(mean_val) else 0.0,
+                            "std": float(std_val) if pd.notna(std_val) else 0.0
+                        }
+                if "response_time_seconds" in df.columns:
+                    mean_rt = df["response_time_seconds"].mean()
+                    std_rt = df["response_time_seconds"].std()
+                    metrics_summary["response_time"] = {
+                        "mean": float(mean_rt) if pd.notna(mean_rt) else 0.0,
+                        "std": float(std_rt) if pd.notna(std_rt) else 0.0
+                    }
+                configs_data[key] = metrics_summary
+            except Exception as e:
+                log_system_event("error", "EVAL_READ_FAIL", f"Gagal membaca file evaluasi {filepath.name}: {e}")
+                configs_data[key] = {}
+            
+    wilcoxon_data = []
     if stats_file.exists():
-        st.markdown("### Uji Signifikansi Wilcoxon (A vs B)")
-        stats_df = pd.read_csv(stats_file)
-        st.dataframe(stats_df)
+        try:
+            stats_df = pd.read_csv(stats_file)
+            stats_df = stats_df.fillna("")
+            wilcoxon_data = stats_df.to_dict(orient="records")
+        except Exception as e:
+            log_system_event("error", "STATS_READ_FAIL", f"Gagal membaca statistical_test.csv: {e}")
+            
+    # Live Audit Log: ambil 5 transaksi chat terbaru secara lokal
+    recent_transactions = []
+    chat_log_path = Path("logs/transaksi_chat.csv")
+    if chat_log_path.exists():
+        try:
+            chat_df = pd.read_csv(chat_log_path)
+            if not chat_df.empty:
+                chat_df = chat_df.fillna("")
+                recent_transactions = chat_df.tail(5).to_dict(orient="records")
+        except Exception as e:
+            log_system_event("error", "LOGS_READ_FAIL", f"Gagal membaca transaksi_chat.csv: {e}")
+            
+    return {
+        "configs": configs_data,
+        "wilcoxon": wilcoxon_data,
+        "recent_transactions": recent_transactions
+    }
 
-    # Tampilkan chart jika ada
-    if chart_file.exists():
-        st.markdown("### Visualisasi Perbandingan")
-        st.image(str(chart_file), use_container_width=True)
-    else:
-        st.info("Chart belum tersedia. Jalankan: `python evaluation.py --visualize`")
+@app.post("/api/log_transaction")
+async def log_transaction_endpoint(request: LogRequest):
+    """
+    Audit Logging Endpoint.
+    
+    Menerima detail transaksi Q&A kuantitatif dari client setelah streaming selesai
+    dan mencatatnya secara eksplisit ke 'logs/transaksi_chat.csv' menggunakan fungsi
+    bawaan 'log_chat_transaction'.
+    """
+    try:
+        log_chat_transaction(
+            config_retrieval=request.config_retrieval,
+            model_llm=request.model_llm,
+            user_query=request.user_query,
+            category_detected=request.category_detected,
+            chunks_retrieved_count=request.chunks_retrieved_count,
+            retrieved_chunk_ids=request.retrieved_chunk_ids,
+            best_similarity_score=request.best_similarity_score,
+            average_similarity_score=request.average_similarity_score,
+            response_time_seconds=request.response_time_seconds,
+            response_text=request.response_text,
+            found_state=request.found_state,
+            prompt_payload_for_token_calc=request.prompt_payload_for_token_calc
+        )
+        return {"status": "success"}
+    except Exception as e:
+        log_system_event("error", "AUDIT_LOG_FAIL", f"Gagal menulis transaksi Q&A ke CSV: {e}")
+        raise HTTPException(status_code=500, detail=f"Gagal mencatat log transaksi: {str(e)}")
 
-    # CLI reference
-    st.markdown("---")
-    st.markdown("**Perintah CLI evaluasi:**")
-    st.code(
-        "python evaluation.py --config a   # Evaluasi Config A\n"
-        "python evaluation.py --config b   # Evaluasi Config B\n"
-        "python evaluation.py --config c   # Evaluasi Config C (BM25)\n"
-        "python evaluation.py --stats      # Uji Wilcoxon A vs B\n"
-        "python evaluation.py --visualize  # Generate bar chart",
-        language="bash",
-    )
-
-
-# ── MAIN ──────────────────────────────────────────────────────────────────────
-def main():
-    """Entry point utama aplikasi Streamlit."""
-    _init_session_state()
-    _render_sidebar()
-
-    tab_chat, tab_eval = st.tabs(["💬 Chatbot", "📊 Evaluasi Ragas"])
-
-    with tab_chat:
-        _render_chat_tab()
-
-    with tab_eval:
-        _render_evaluation_tab()
-
-
+# Startup uvicorn
 if __name__ == "__main__":
-    main()
+    import uvicorn
+    
+    # Custom Server untuk menangani registrasi sinyal di secondary thread secara aman
+    class CustomServer(uvicorn.Server):
+        def install_signal_handlers(self) -> None:
+            try:
+                super().install_signal_handlers()
+            except ValueError:
+                # signal only works in main thread of the main interpreter
+                # Tangani dan bypass secara aman bila dijalankan di secondary thread/wrapper
+                pass
+
+    # Menjalankan di host 0.0.0.0 dan port 8501 (reload dimatikan demi stabilitas signal)
+    config = uvicorn.Config("app:app", host="0.0.0.0", port=8501, reload=False)
+    server = CustomServer(config=config)
+    server.run()

@@ -32,21 +32,45 @@ from src.logger_manager import log_system_event, log_chat_transaction
 logger = logging.getLogger(__name__)
 
 # Instance LLM — bisa di-reinisialisasi via reinitialize_llm()
-_llm: ChatGoogleGenerativeAI | None = None
+_llm = None
 
 
-def _get_llm() -> ChatGoogleGenerativeAI:
+def _get_llm():
     """Dapatkan atau buat instance LLM dengan konfigurasi default."""
     global _llm
     if _llm is None:
-        _llm = ChatGoogleGenerativeAI(
-            model=LLM_MODEL_NAME,
+        _llm = _create_llm_instance(LLM_MODEL_NAME)
+    return _llm
+
+
+def _create_llm_instance(model_name: str):
+    """Faktor pembungkus instansiasi LLM untuk mendukung Google Gemini dan NVIDIA NIM secara dinamis."""
+    import os
+    if model_name.startswith("qwen") or model_name.startswith("nvidia") or "nvidia" in model_name or "llama" in model_name:
+        from langchain_nvidia_ai_endpoints import ChatNVIDIA
+        nvidia_api_key = os.getenv("NVIDIA_API_KEY")
+        if not nvidia_api_key:
+            raise ValueError(
+                "NVIDIA_API_KEY tidak ditemukan di berkas .env saat mencoba memuat model Qwen/NVIDIA!\n"
+                "Silakan isi: NVIDIA_API_KEY=your_key di berkas .env Anda."
+            )
+        logger.info(f"Menginisialisasi ChatNVIDIA dengan model: {model_name}")
+        return ChatNVIDIA(
+            model=model_name,
+            api_key=nvidia_api_key,
+            temperature=LLM_TEMPERATURE,
+            top_p=LLM_TOP_P,
+        )
+    else:
+        logger.info(f"Menginisialisasi ChatGoogleGenerativeAI dengan model: {model_name}")
+        from langchain_google_genai import ChatGoogleGenerativeAI
+        return ChatGoogleGenerativeAI(
+            model=model_name,
             temperature=LLM_TEMPERATURE,
             max_output_tokens=LLM_MAX_OUTPUT_TOKENS,
             top_p=LLM_TOP_P,
             google_api_key=GOOGLE_API_KEY,
         )
-    return _llm
 
 
 def reinitialize_llm(model_name: str) -> None:
@@ -56,13 +80,7 @@ def reinitialize_llm(model_name: str) -> None:
     Tidak perlu restart server Streamlit.
     """
     global _llm
-    _llm = ChatGoogleGenerativeAI(
-        model=model_name,
-        temperature=LLM_TEMPERATURE,
-        max_output_tokens=LLM_MAX_OUTPUT_TOKENS,
-        top_p=LLM_TOP_P,
-        google_api_key=GOOGLE_API_KEY,
-    )
+    _llm = _create_llm_instance(model_name)
     logger.info(f"LLM diinisialisasi ulang dengan model: {model_name}")
     log_system_event("info", "LLM_INIT", f"Model diinisialisasi ulang: {model_name}")
 
@@ -331,7 +349,21 @@ def _stream_with_retry(llm: ChatGoogleGenerativeAI, messages: list) -> Generator
     for attempt in range(MAX_RETRIES):
         try:
             for chunk in llm.stream(messages):
-                yield chunk.content
+                # Ekstrak token teks secara aman (mendukung Gemini 3+ / thought signature)
+                if hasattr(chunk, "text") and chunk.text:
+                    yield chunk.text
+                elif isinstance(chunk.content, str):
+                    yield chunk.content
+                elif isinstance(chunk.content, list):
+                    text_parts = []
+                    for block in chunk.content:
+                        if isinstance(block, dict) and "text" in block:
+                            text_parts.append(block["text"])
+                        elif isinstance(block, str):
+                            text_parts.append(block)
+                    yield "".join(text_parts)
+                else:
+                    yield str(chunk.content) if chunk.content is not None else ""
             if attempt > 0:
                 log_system_event("info", "API_RETRY", f"Percobaan stream ke-{attempt + 1} sukses.")
             return
